@@ -1,0 +1,88 @@
+{% extends "base.html" %}{% load humanize carcraft %}
+{% block title %}Manager dashboard{% endblock %}
+{% block content %}
+<div class="page-head d-flex justify-content-between align-items-end flex-wrap gap-3" data-reveal>
+  <div><span class="eyebrow">Instrument cluster</span><h1>Dealership dashboard</h1></div>
+  <form method="post" action="{% url 'service:run_reminders' %}">{% csrf_token %}
+    <button class="btn btn-accent"><i class="bi bi-send me-1"></i> Send service reminders <span class="badge bg-dark ms-1">{{ due_count }} due</span></button>
+  </form>
+</div>
+
+<div class="row g-3 mb-4" data-stagger=".07">
+  <div class="col-6 col-lg-3"><div class="card kpi"><i class="bi bi-car-front ico"></i><div class="label">Cars in stock</div><div class="value" data-count="{{ kpi.in_stock }}">{{ kpi.in_stock }}</div><div class="sub">₹{{ kpi.stock_value|floatformat:0|intcomma }} value</div></div></div>
+  <div class="col-6 col-lg-3"><div class="card kpi"><i class="bi bi-hourglass-split ico"></i><div class="label">Aging stock</div><div class="value" data-count="{{ kpi.aging }}">{{ kpi.aging }}</div><div class="sub">45+ days on lot</div></div></div>
+  <div class="col-6 col-lg-3"><div class="card kpi"><i class="bi bi-trophy ico"></i><div class="label">Sold this month</div><div class="value" data-count="{{ kpi.sold_month }}">{{ kpi.sold_month }}</div><div class="sub">₹{{ kpi.sales_month|floatformat:0|intcomma }}</div></div></div>
+  <div class="col-6 col-lg-3"><div class="card kpi"><i class="bi bi-bag-check ico"></i><div class="label">Parts revenue</div><div class="value" data-count="{{ kpi.parts_revenue|floatformat:0 }}" data-prefix="₹">₹{{ kpi.parts_revenue|floatformat:0|intcomma }}</div><div class="sub">this month</div></div></div>
+</div>
+
+<div class="panel mb-4" data-reveal>
+  <div class="row g-4 text-center">
+    <div class="col-md-4">{% include "_gauge.html" with p=gauges.avg_days|pct_of:150 value=gauges.avg_days label="Avg days on lot" %}</div>
+    <div class="col-md-4">{% include "_gauge.html" with p=gauges.bay_util value=gauges.bay_util|stringformat:"d"|add:"%" label="Bay utilisation today" %}</div>
+    <div class="col-md-4">{% include "_gauge.html" with p=gauges.fresh_pct value=gauges.fresh_pct|stringformat:"d"|add:"%" label="Fresh stock (<45 days)" color="#22d07a" %}</div>
+  </div>
+</div>
+
+<div class="row g-4">
+  <div class="col-lg-6" data-reveal>
+    <div class="panel h-100">
+      <div class="d-flex justify-content-between align-items-center mb-3"><h5 class="mb-0">Inventory aging</h5><a href="{% url 'dashboard:aging' %}" class="small">Price advisor <i class="bi bi-arrow-right"></i></a></div>
+      <canvas id="agingChart" height="190"></canvas>
+      <p class="small muted mt-3 mb-0">Estimated holding cost of current stock: <b class="text-white">₹{{ holding_cost|floatformat:0|intcomma }}</b></p>
+    </div>
+  </div>
+  <div class="col-lg-6" data-reveal style="--d:.1s">
+    <div class="panel h-100">
+      <h5>Customers due for service <span class="badge bg-danger ms-1">{{ due_count }}</span></h5>
+      <p class="small muted">Predicted from each car's own driving rate.</p>
+      <div class="table-responsive"><table class="table table-sm small">
+        <thead><tr><th>Customer</th><th>Car</th><th>Service</th><th>Due</th></tr></thead>
+        {% for d in due_services %}
+        <tr><td>{{ d.car.owner }}</td><td><code>{{ d.car.registration_no }}</code></td><td>{{ d.pred.service_type }}</td>
+          <td><span class="badge bg-{{ d.pred.color }}">{{ d.pred.due_date|date:"d M" }}</span></td></tr>
+        {% empty %}<tr><td colspan="4" class="muted">No services due in the next 30 days.</td></tr>{% endfor %}
+      </table></div>
+    </div>
+  </div>
+  <div class="col-lg-4" data-reveal>
+    <div class="panel h-100">
+      <h5 class="mb-3">Low stock parts</h5>
+      {% for p in low_stock %}<div class="d-flex justify-content-between py-2 small {% if not forloop.last %}border-bottom{% endif %}"><span>{{ p.name }}</span><span class="badge {% if p.stock == 0 %}bg-danger{% else %}bg-warning{% endif %}">{{ p.stock }} left</span></div>
+      {% empty %}<p class="small muted mb-0">All parts above reorder level.</p>{% endfor %}
+    </div>
+  </div>
+  <div class="col-lg-4" data-reveal style="--d:.1s">
+    <div class="panel h-100">
+      <h5 class="mb-3">Test drives · next 7 days</h5>
+      {% for t in test_drives %}<div class="py-2 small {% if not forloop.last %}border-bottom{% endif %}"><b>{{ t.date|date:"D d" }}</b> {{ t.time|time:"H:i" }} · {{ t.vehicle.car_model }}<div class="muted">{{ t.customer }} · {{ t.get_status_display }}</div></div>
+      {% empty %}<p class="small muted mb-0">None scheduled.</p>{% endfor %}
+    </div>
+  </div>
+  <div class="col-lg-4" data-reveal style="--d:.2s">
+    <div class="panel h-100">
+      <h5 class="mb-3">Service mix · this month</h5>
+      {% for s in service_mix %}<div class="d-flex justify-content-between py-2 small {% if not forloop.last %}border-bottom{% endif %}"><span>{{ s.service_type__name }}</span><b>{{ s.n }}</b></div>
+      {% empty %}<p class="small muted">No jobs yet.</p>{% endfor %}
+      <a href="{% url 'service:board' %}" class="btn btn-sm btn-ghost mt-3 w-100">Open service board</a>
+    </div>
+  </div>
+</div>
+{{ bucket_labels|json_script:"bucket-labels" }}
+{{ bucket_values|json_script:"bucket-values" }}
+{% endblock %}
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script>
+ccChartDefaults();
+new Chart(document.getElementById('agingChart'), {
+  type: 'bar',
+  data: {
+    labels: JSON.parse(document.getElementById('bucket-labels').textContent),
+    datasets: [{ data: JSON.parse(document.getElementById('bucket-values').textContent),
+      backgroundColor: ['#22d07a', '#ffb21a', '#ff7a1a', '#ff4d4f'], borderRadius: 8, maxBarThickness: 56 }]
+  },
+  options: { animation: { duration: 1400, easing: 'easeOutQuart' }, plugins: { legend: { display: false } },
+    scales: { x: { grid: { display: false } }, y: { beginAtZero: true, ticks: { precision: 0 } } } }
+});
+</script>
+{% endblock %}

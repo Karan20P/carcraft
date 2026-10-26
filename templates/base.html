@@ -1,0 +1,124 @@
+{% load static %}<!doctype html>
+<html lang="en" data-bs-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0a0c0f">
+  <title>{% block title %}CarCraft{% endblock %} · CarCraft</title>
+  <script>document.documentElement.classList.add("js")</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link href="{% static 'css/carcraft.css' %}" rel="stylesheet">
+</head>
+<body class="d-flex flex-column min-vh-100">
+
+<div id="ignition" aria-hidden="true">
+  <div>
+    <svg class="tach" viewBox="0 0 200 150">
+      <defs><linearGradient id="ig-g" x1="0" x2="1"><stop offset="0" stop-color="#ffb21a"/><stop offset="1" stop-color="#ff3d2e"/></linearGradient></defs>
+      <path d="M30,140 A80,80 0 1 1 170,140" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="10" stroke-linecap="round"/>
+      <path class="tach-arc" d="M30,140 A80,80 0 1 1 170,140" fill="none" stroke="url(#ig-g)" stroke-width="10" stroke-linecap="round" pathLength="100"/>
+      <g class="tach-needle"><line x1="100" y1="100" x2="100" y2="36" stroke="#fff" stroke-width="3" stroke-linecap="round"/></g>
+      <circle cx="100" cy="100" r="9" fill="#13171c" stroke="#ff6b1a" stroke-width="3"/>
+    </svg>
+    <div class="tach-label">CARCRAFT</div>
+  </div>
+</div>
+
+<nav class="navbar navbar-expand-lg sticky-top cc-nav">
+  <div class="container">
+    <a class="navbar-brand brand" href="{% url 'home' %}">
+      <svg viewBox="0 0 40 40" aria-hidden="true">
+        <defs><linearGradient id="lg-b" x1="0" x2="1" y1="0" y2="1"><stop offset="0" stop-color="#ffb21a"/><stop offset="1" stop-color="#ff3d2e"/></linearGradient></defs>
+        <circle cx="20" cy="20" r="17" fill="none" stroke="url(#lg-b)" stroke-width="3"/>
+        <circle cx="20" cy="20" r="4" fill="url(#lg-b)"/>
+        <path d="M20 16 V5 M16.5 22 L7 28 M23.5 22 L33 28" stroke="url(#lg-b)" stroke-width="3" stroke-linecap="round"/>
+      </svg>
+      <span>CAR<span class="text-grad">CRAFT</span></span>
+    </a>
+    <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#nav" aria-label="Menu"><i class="bi bi-list fs-2"></i></button>
+    <div class="collapse navbar-collapse" id="nav">
+      <ul class="navbar-nav mx-auto">
+        <li class="nav-item"><a class="nav-link" href="{% url 'inventory:list' %}">Showroom</a></li>
+        <li class="nav-item"><a class="nav-link" href="{% url 'shop:list' %}">Parts &amp; Accessories</a></li>
+        {% if user.is_authenticated and not user.is_dealer_staff %}
+        <li class="nav-item"><a class="nav-link" href="{% url 'service:my_cars' %}">My Garage</a></li>
+        <li class="nav-item"><a class="nav-link" href="{% url 'service:book' %}">Book Service</a></li>
+        {% endif %}
+        {% if user.is_authenticated and user.is_dealer_staff %}
+        <li class="nav-item"><a class="nav-link" href="{% url 'dashboard:manager' %}">Dashboard</a></li>
+        <li class="nav-item"><a class="nav-link" href="{% url 'dashboard:aging' %}">Aging Advisor</a></li>
+        <li class="nav-item"><a class="nav-link" href="{% url 'service:board' %}">Service Board</a></li>
+        {% endif %}
+      </ul>
+      <ul class="navbar-nav align-items-lg-center gap-lg-1">
+        <li class="nav-item"><a class="nav-link nav-icon" href="{% url 'shop:cart' %}" aria-label="Cart"><i class="bi bi-bag"></i>{% if cart_count %}<span class="dot">{{ cart_count }}</span>{% endif %}</a></li>
+        {% if user.is_authenticated %}
+        <li class="nav-item"><a class="nav-link nav-icon" href="{% url 'service:notifications' %}" aria-label="Notifications"><i class="bi bi-bell"></i>{% if unread_notifications %}<span class="dot pulse">{{ unread_notifications }}</span>{% endif %}</a></li>
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle d-flex align-items-center gap-2" href="#" data-bs-toggle="dropdown">
+            <span class="d-inline-grid rounded-circle text-dark fw-bold" style="width:30px;height:30px;place-items:center;background:var(--cc-grad);font-size:.8rem">{{ user.username|first|upper }}</span>
+            {{ user.username }}
+          </a>
+          <ul class="dropdown-menu dropdown-menu-end">
+            <li><a class="dropdown-item" href="{% url 'dashboard:home' %}"><i class="bi bi-speedometer2 me-2"></i>Dashboard</a></li>
+            {% if user.is_dealer_staff %}
+            <li><a class="dropdown-item" href="{% url 'admin:index' %}"><i class="bi bi-sliders me-2"></i>Admin panel</a></li>
+            {% else %}
+            <li><a class="dropdown-item" href="{% url 'service:appointments' %}"><i class="bi bi-calendar-check me-2"></i>Appointments</a></li>
+            <li><a class="dropdown-item" href="{% url 'shop:orders' %}"><i class="bi bi-box-seam me-2"></i>Orders</a></li>
+            {% endif %}
+            <li><hr class="dropdown-divider"></li>
+            <li><form method="post" action="{% url 'logout' %}">{% csrf_token %}<button class="dropdown-item"><i class="bi bi-box-arrow-right me-2"></i>Log out</button></form></li>
+          </ul>
+        </li>
+        {% else %}
+        <li class="nav-item"><a class="nav-link" href="{% url 'login' %}">Log in</a></li>
+        <li class="nav-item ms-lg-2"><a class="btn btn-accent btn-sm" href="{% url 'signup' %}">Get started</a></li>
+        {% endif %}
+      </ul>
+    </div>
+  </div>
+</nav>
+
+{% if messages %}
+<div class="toast-stack" role="status">
+  {% for message in messages %}
+  <div class="cc-toast {{ message.tags }}">
+    <i class="bi {% if message.tags == 'success' %}bi-check-circle-fill{% elif message.tags == 'error' %}bi-exclamation-octagon-fill{% else %}bi-info-circle-fill{% endif %}"></i>
+    <div>{{ message }}</div>
+    <button type="button" aria-label="Dismiss"><i class="bi bi-x-lg" style="font-size:.85rem"></i></button>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+<main class="flex-grow-1">
+  {% block hero %}{% endblock %}
+  <div class="container py-5">{% block content %}{% endblock %}</div>
+</main>
+
+<footer class="cc-footer pt-5 pb-4 mt-auto">
+  <div class="container">
+    <div class="row g-4">
+      <div class="col-lg-5">
+        <a class="brand text-decoration-none mb-2 d-inline-flex" href="{% url 'home' %}"><span>CAR<span class="text-grad">CRAFT</span></span></a>
+        <p class="muted small" style="max-width:360px">A dealership that sells, fits and services, with maintenance predicted from how <em>your</em> car is actually driven.</p>
+      </div>
+      <div class="col-6 col-lg-2"><h6>Buy</h6><ul class="list-unstyled small d-grid gap-2"><li><a href="{% url 'inventory:list' %}">Showroom</a></li><li><a href="{% url 'inventory:list' %}?condition=new">New cars</a></li><li><a href="{% url 'inventory:list' %}?condition=used">Pre-owned</a></li></ul></div>
+      <div class="col-6 col-lg-2"><h6>Own</h6><ul class="list-unstyled small d-grid gap-2"><li><a href="{% url 'shop:list' %}">Parts shop</a></li><li><a href="{% url 'service:book' %}">Book service</a></li><li><a href="{% url 'service:my_cars' %}">My Garage</a></li></ul></div>
+      <div class="col-lg-3"><h6>Workshop hours</h6><p class="small muted mb-1">Mon to Sat · 9:00 to 17:00</p><p class="small muted">Sunday closed</p></div>
+    </div>
+    <div class="divider-tread my-4"></div>
+    <div class="d-flex justify-content-between small muted flex-wrap gap-2"><span>&copy; CarCraft Automotive Suite</span><span>Sales · Parts · Service</span></div>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="{% static 'js/carcraft.js' %}"></script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

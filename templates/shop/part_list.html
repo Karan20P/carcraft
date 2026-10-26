@@ -1,0 +1,47 @@
+{% extends "base.html" %}{% load humanize %}
+{% block title %}Parts &amp; Accessories{% endblock %}
+{% block content %}
+<div class="page-head d-flex justify-content-between align-items-end flex-wrap gap-3" data-reveal>
+  <div><span class="eyebrow">The parts counter</span><h1>Parts &amp; Accessories</h1></div>
+  <form method="get" class="input-icon" style="min-width:min(340px,100%)">
+    {% if filters.category %}<input type="hidden" name="category" value="{{ filters.category }}">{% endif %}
+    <i class="bi bi-search"></i><input name="q" value="{{ filters.q }}" class="form-control" placeholder="Search parts, brands, SKU">
+  </form>
+</div>
+
+<div class="cat-pills mb-4" data-reveal style="--d:.1s">
+  <a href="{% url 'shop:list' %}" class="cat-pill {% if not filters.category %}active{% endif %}">All</a>
+  {% for c in categories %}
+  <a href="?category={{ c.pk }}" class="cat-pill {% if filters.category == c.pk|stringformat:'s' %}active{% endif %}"><i class="bi {{ c.icon }} me-1"></i>{{ c.name }}</a>
+  {% endfor %}
+</div>
+
+<div class="row g-4" data-stagger=".05">
+  {% for p in parts %}
+  <div class="col-sm-6 col-lg-4 col-xl-3">
+    <div class="card part-card lift">
+      <div class="d-flex justify-content-between align-items-start mb-3">
+        <div class="p-ico"><i class="bi {{ p.category.icon }}"></i></div>
+        {% if p.is_accessory %}<span class="badge bg-secondary">Accessory</span>{% endif %}
+      </div>
+      <div class="small muted">{{ p.brand }} · {{ p.sku }}</div>
+      <h6 class="mt-1 mb-2">{{ p.name }}</h6>
+      <p class="small muted mb-3">{{ p.description|truncatewords:12 }}</p>
+      <div class="mt-auto">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <span class="price">₹{{ p.price|floatformat:0|intcomma }}</span>
+          {% if p.stock == 0 %}<span class="small" style="color:var(--cc-bad)"><span class="status-dot"></span>Sold out</span>
+          {% elif p.low_stock %}<span class="small" style="color:var(--cc-warn)"><span class="status-dot"></span>{{ p.stock }} left</span>
+          {% else %}<span class="small" style="color:var(--cc-ok)"><span class="status-dot"></span>In stock</span>{% endif %}
+        </div>
+        <form method="post" action="{% url 'shop:cart_add' p.pk %}" class="d-flex gap-2">{% csrf_token %}
+          <input type="hidden" name="next" value="{{ request.get_full_path }}">
+          <input type="number" name="quantity" value="1" min="1" max="{{ p.stock }}" class="form-control form-control-sm text-center" style="width:64px" {% if p.stock == 0 %}disabled{% endif %} aria-label="Quantity">
+          <button class="btn btn-accent btn-sm flex-grow-1" {% if p.stock == 0 %}disabled{% endif %}><i class="bi bi-bag-plus me-1"></i>Add</button>
+        </form>
+      </div>
+    </div>
+  </div>
+  {% empty %}<div class="col-12"><div class="empty"><i class="bi bi-box"></i>No parts found.</div></div>{% endfor %}
+</div>
+{% endblock %}

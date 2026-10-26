@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}Showroom{% endblock %}
+{% block content %}
+<div class="page-head" data-reveal>
+  <span class="eyebrow">The showroom</span>
+  <h1>Find your next drive</h1>
+  <p class="muted mb-0">{{ page.paginator.count }} car{{ page.paginator.count|pluralize }} available</p>
+</div>
+
+<form class="panel glass mb-4" method="get" data-reveal style="--d:.1s">
+  <div class="row g-3 align-items-end">
+    <div class="col-lg-3"><label class="form-label">Search</label>
+      <div class="input-icon"><i class="bi bi-search"></i><input name="q" value="{{ filters.q }}" class="form-control" placeholder="Make, model, variant"></div></div>
+    <div class="col-6 col-lg-2"><label class="form-label">Make</label><select name="make" class="form-select"><option value="">All makes</option>
+      {% for m in makes %}<option value="{{ m.pk }}" {% if filters.make == m.pk|stringformat:"s" %}selected{% endif %}>{{ m }}</option>{% endfor %}</select></div>
+    <div class="col-6 col-lg-2"><label class="form-label">Fuel</label><select name="fuel" class="form-select"><option value="">Any</option>
+      {% for k, label in fuels %}<option value="{{ k }}" {% if filters.fuel == k %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></div>
+    <div class="col-6 col-lg-1"><label class="form-label">Type</label><select name="condition" class="form-select"><option value="">All</option>
+      <option value="new" {% if filters.condition == "new" %}selected{% endif %}>New</option>
+      <option value="used" {% if filters.condition == "used" %}selected{% endif %}>Used</option></select></div>
+    <div class="col-6 col-lg-2"><label class="form-label">Max price (₹)</label><input name="max_price" value="{{ filters.max_price }}" type="number" class="form-control" placeholder="Any"></div>
+    <div class="col-6 col-lg-1"><label class="form-label">Sort</label><select name="sort" class="form-select">
+      <option value="newest">Newest</option>
+      <option value="price_low" {% if filters.sort == "price_low" %}selected{% endif %}>Price ↑</option>
+      <option value="price_high" {% if filters.sort == "price_high" %}selected{% endif %}>Price ↓</option>
+      <option value="year" {% if filters.sort == "year" %}selected{% endif %}>Year</option></select></div>
+    <div class="col-6 col-lg-1"><button class="btn btn-accent w-100"><i class="bi bi-funnel"></i></button></div>
+  </div>
+</form>
+
+<div class="row g-4" data-stagger=".07">
+  {% for v in page %}<div class="col-md-6 col-lg-4">{% include "_vehicle_card.html" %}</div>
+  {% empty %}<div class="col-12"><div class="empty"><i class="bi bi-search"></i>No cars match your filters.</div></div>{% endfor %}
+</div>
+
+{% if page.has_other_pages %}
+<nav class="mt-5"><ul class="pagination justify-content-center">
+  {% for n in page.paginator.page_range %}
+  <li class="page-item {% if n == page.number %}active{% endif %}"><a class="page-link" href="?{% for k, v in filters.items %}{% if k != 'page' %}{{ k }}={{ v|urlencode }}&amp;{% endif %}{% endfor %}page={{ n }}">{{ n }}</a></li>
+  {% endfor %}
+</ul></nav>
+{% endif %}
+{% endblock %}

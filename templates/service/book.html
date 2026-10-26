@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}Book a service{% endblock %}
+{% block content %}
+<div class="row g-4 justify-content-center">
+  <div class="col-lg-7">
+    <div class="page-head" data-reveal><span class="eyebrow">Workshop</span><h1>Book a service</h1></div>
+    <div class="panel" data-reveal="zoom">
+      <form method="post">{% csrf_token %}{% include "_form.html" %}<button class="btn btn-accent btn-lg w-100"><i class="bi bi-calendar-check me-1"></i> Confirm booking</button></form>
+    </div>
+  </div>
+  <div class="col-lg-4">
+    <div class="panel sticky-panel mt-lg-5" data-reveal="right">
+      <h5 class="mb-3"><i class="bi bi-info-circle me-1 text-grad"></i>Good to know</h5>
+      <ul class="list-unstyled small d-grid gap-3 mb-0 muted">
+        <li><i class="bi bi-clock me-2" style="color:var(--cc-accent-2)"></i>Open Monday to Saturday, slots from 9:00 to 15:30</li>
+        <li><i class="bi bi-grid-3x2-gap me-2" style="color:var(--cc-accent-2)"></i>Limited service bays per slot. Full slots are rejected.</li>
+        <li><i class="bi bi-box-seam me-2" style="color:var(--cc-accent-2)"></i>Tick "parts bundle" and we'll have the exact parts ready</li>
+        <li><i class="bi bi-speedometer me-2" style="color:var(--cc-accent-2)"></i>Your odometer at service updates your predictions</li>
+      </ul>
+    </div>
+  </div>
+</div>
+{% endblock %}

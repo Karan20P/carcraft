@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}Notifications{% endblock %}
+{% block content %}
+<div class="page-head" data-reveal><span class="eyebrow">Inbox</span><h1>Notifications</h1></div>
+<div class="d-grid gap-3" data-stagger=".06">
+  {% for n in items %}
+  <div class="panel d-flex gap-3 align-items-start {% if not n.is_read %}unread{% endif %}">
+    <div class="p-ico flex-shrink-0" style="width:44px;height:44px;border-radius:12px;display:grid;place-items:center;background:rgba(255,178,26,.1);color:var(--cc-accent-2)"><i class="bi bi-bell"></i></div>
+    <div class="flex-grow-1">
+      <div>{{ n.message }}</div>
+      <div class="small muted mt-1">{{ n.created_at|timesince }} ago</div>
+    </div>
+    {% if n.link %}<a href="{{ n.link }}" class="btn btn-accent btn-sm flex-shrink-0">Book slot</a>{% endif %}
+  </div>
+  {% empty %}<div class="empty panel"><i class="bi bi-bell-slash"></i>You're all caught up.</div>{% endfor %}
+</div>
+{% endblock %}

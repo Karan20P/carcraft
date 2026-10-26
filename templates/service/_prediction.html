@@ -1,0 +1,38 @@
+{% load humanize %}
+<div class="card pred {{ p.status }}">
+  <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-2">
+    <h5>{% if p.status == "overdue" %}<i class="bi bi-exclamation-triangle-fill warn-ico me-1"></i>{% endif %}{{ p.service_type.name }}</h5>
+    <span class="badge bg-{{ p.color }}">{{ p.status_label }}</span>
+  </div>
+  <p class="mb-3">
+    {% if p.status == "overdue" %}Was due <b>{{ p.due_date|date:"d M Y" }}</b>, {{ p.days_overdue }} days ago
+    {% else %}Due around <b>{{ p.due_date|date:"d M Y" }}</b>, in {{ p.days_left }} days{% endif %}
+    <span class="chip ms-1"><i class="bi {% if p.trigger == 'distance' %}bi-signpost-split{% else %}bi-hourglass-split{% endif %}"></i>by {{ p.trigger }}</span>
+  </p>
+
+  <div class="fuelbar mb-1" data-w="{% if p.life_used > 100 %}100{% else %}{{ p.life_used }}{% endif %}" style="--w:{% if p.life_used > 100 %}100{% else %}{{ p.life_used }}{% endif %}%"><span class="rest"></span></div>
+  <div class="fuel-legend mb-3"><span>Last service</span><span>{{ p.life_used }}% of interval used</span><span>Due</span></div>
+
+  <div class="meta">
+    <span><i class="bi bi-clock-history me-1"></i>Last: {{ p.last_date|date:"d M Y" }} · {{ p.last_km|intcomma }} km</span>
+    {% if p.due_km %}<span><i class="bi bi-flag me-1"></i>Due at {{ p.due_km|intcomma }} km {% if p.km_left is not None %}({% if p.km_left >= 0 %}{{ p.km_left|intcomma }} to go{% else %}{{ p.km_over|intcomma }} over{% endif %}){% endif %}</span>{% endif %}
+    {% if p.due_date_by_km %}<span><i class="bi bi-signpost me-1"></i>By distance: {{ p.due_date_by_km|date:"d M Y" }}</span>{% endif %}
+    {% if p.due_date_by_time %}<span><i class="bi bi-calendar me-1"></i>By time: {{ p.due_date_by_time|date:"d M Y" }}</span>{% endif %}
+  </div>
+
+  {% if p.bundle %}
+  <div class="mt-3 small"><span class="muted me-1">Parts bundle</span>
+    {% for part in p.bundle %}<span class="chip me-1 mb-1">{{ part.name }}</span>{% endfor %}
+  </div>
+  {% endif %}
+
+  <div class="mt-3 pt-3 border-top d-flex justify-content-between align-items-center flex-wrap gap-2">
+    <span class="small muted">Estimate <b class="text-white fs-6 ms-1">₹{{ p.total_estimate|floatformat:0|intcomma }}</b> <span class="ms-1">labour + parts</span></span>
+    {% if show_book %}
+    <a class="btn btn-sm {% if p.status == 'ok' %}btn-ghost{% else %}btn-accent{% endif %}"
+       href="{% url 'service:book' %}?car={{ car.pk }}&amp;service_type={{ p.service_type.pk }}{% if p.suggested_date %}&amp;date={{ p.suggested_date|date:'Y-m-d' }}&amp;slot={{ p.suggested_slot }}{% endif %}">
+      <i class="bi bi-calendar-plus me-1"></i>{% if p.suggested_date %}Book {{ p.suggested_date|date:"D d M" }}, {{ p.suggested_slot }}{% else %}Book now{% endif %}
+    </a>
+    {% endif %}
+  </div>
+</div>

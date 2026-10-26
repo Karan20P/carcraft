@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}Sign up{% endblock %}
+{% block content %}
+<div class="auth-wrap" data-reveal="zoom">
+  <div class="auth-visual">
+    <div>
+      <span class="eyebrow">Join CarCraft</span>
+      <h2 class="mt-2" style="font-size:clamp(2.2rem,4vw,3.4rem);line-height:.95">Your car,<br><span class="text-grad">understood.</span></h2>
+      <ul class="list-unstyled muted small d-grid gap-2 mt-3">
+        <li><i class="bi bi-check2-circle me-2" style="color:var(--cc-ok)"></i>Service forecasts from your real driving</li>
+        <li><i class="bi bi-check2-circle me-2" style="color:var(--cc-ok)"></i>One-tap booking with parts ready</li>
+        <li><i class="bi bi-check2-circle me-2" style="color:var(--cc-ok)"></i>Genuine parts delivered</li>
+      </ul>
+    </div>
+    <div class="mini-car">{% include "_car_svg.html" with paint="#8a1414" spin=True beam=True %}</div>
+    <div class="road"></div>
+  </div>
+  <div class="auth-form">
+    <h3 class="mb-4">Create your account</h3>
+    <form method="post">{% csrf_token %}{% include "_form.html" %}<button class="btn btn-accent btn-lg w-100">Create account</button></form>
+    <p class="mt-4 mb-0 small muted">Already have one? <a href="{% url 'login' %}">Log in</a></p>
+  </div>
+</div>
+{% endblock %}

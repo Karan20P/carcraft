@@ -1,0 +1,17 @@
+{% extends "base.html" %}{% load humanize %}
+{% block title %}My orders{% endblock %}
+{% block content %}
+<div class="page-head" data-reveal><span class="eyebrow">Parts shop</span><h1>My orders</h1></div>
+<div data-stagger=".08">
+{% for o in orders %}
+<div class="panel mb-3">
+  <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+    <div><span class="display-font fs-4">Order #{{ o.pk }}</span> <span class="muted small ms-2">{{ o.created_at|date:"d M Y, H:i" }}</span></div>
+    <span class="badge {% if o.status == 'delivered' %}bg-success{% elif o.status == 'cancelled' %}bg-danger{% else %}bg-warning{% endif %}">{{ o.get_status_display }}</span>
+  </div>
+  <div class="d-flex flex-wrap gap-2 mb-3">{% for i in o.items.all %}<span class="chip">{{ i.part.name }} × {{ i.quantity }}</span>{% endfor %}</div>
+  <div class="d-flex justify-content-between"><span class="muted small">Total</span><b>₹{{ o.total|floatformat:0|intcomma }}</b></div>
+</div>
+{% empty %}<div class="empty panel"><i class="bi bi-box-seam"></i>No orders yet.<div class="mt-3"><a href="{% url 'shop:list' %}" class="btn btn-accent">Shop parts</a></div></div>{% endfor %}
+</div>
+{% endblock %}

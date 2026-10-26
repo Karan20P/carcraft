@@ -1,0 +1,23 @@
+{% load humanize carcraft %}
+<a href="{% url 'inventory:detail' v.pk %}" class="card vehicle-card lift tilt text-decoration-none text-reset">
+  <div class="studio">
+    <span class="badge {% if v.is_new %}bg-success{% else %}bg-secondary{% endif %} tag">{% if v.is_new %}New{% else %}Pre-owned{% endif %}</span>
+    {% if v.price_changes.exists %}<span class="badge bg-warning tag tag-r"><i class="bi bi-arrow-down"></i> Price drop</span>{% endif %}
+    {% if v.display_image %}<img src="{{ v.display_image.url }}" alt="{{ v.car_model }}" loading="lazy">
+    {% else %}{% include "_car_svg.html" with paint=v.color|paint %}{% endif %}
+  </div>
+  <div class="p-4 d-flex flex-column flex-grow-1">
+    <div class="small muted mb-1">{{ v.car_model.make }} · {{ v.year }}</div>
+    <div class="title mb-2">{{ v.car_model.name }} <span class="muted" style="font-size:1rem">{{ v.variant }}</span></div>
+    <div class="spec-row mb-3">
+      <span class="chip"><i class="bi bi-fuel-pump"></i>{{ v.get_fuel_display }}</span>
+      <span class="chip"><i class="bi bi-gear-wide-connected"></i>{{ v.get_transmission_display }}</span>
+      {% if not v.is_new %}<span class="chip"><i class="bi bi-speedometer2"></i>{{ v.odometer_km|intcomma }} km</span>{% endif %}
+      <span class="chip"><span class="rounded-circle d-inline-block" style="width:9px;height:9px;background:{{ v.color|paint }};border:1px solid rgba(255,255,255,.3)"></span>{{ v.color }}</span>
+    </div>
+    <div class="mt-auto d-flex justify-content-between align-items-end">
+      <div class="price">₹{{ v.list_price|floatformat:0|intcomma }}</div>
+      <span class="small text-grad fw-semibold">View <i class="bi bi-arrow-right"></i></span>
+    </div>
+  </div>
+</a>

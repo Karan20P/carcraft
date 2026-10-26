@@ -1,0 +1,29 @@
+{% extends "base.html" %}{% load humanize %}
+{% block title %}My appointments{% endblock %}
+{% block content %}
+<div class="page-head d-flex justify-content-between align-items-end flex-wrap gap-3" data-reveal>
+  <div><span class="eyebrow">Workshop</span><h1>My appointments</h1></div>
+  <a href="{% url 'service:book' %}" class="btn btn-accent"><i class="bi bi-calendar-plus me-1"></i> Book a service</a>
+</div>
+<div class="card" data-reveal>
+  <div class="table-responsive">
+  <table class="table align-middle">
+    <thead><tr><th class="ps-4">Date</th><th>Car</th><th>Service</th><th>Estimate</th><th>Status</th><th class="pe-4"></th></tr></thead>
+    <tbody>
+    {% for a in appointments %}
+    <tr>
+      <td class="ps-4"><div class="fw-semibold">{{ a.date|date:"D d M Y" }}</div><div class="small muted">{{ a.slot }}</div></td>
+      <td>{{ a.car.car_model }}<div class="small muted">{{ a.car.registration_no }}</div></td>
+      <td>{{ a.service_type }}{% if a.include_bundle %}<div class="small muted">+ parts bundle</div>{% endif %}</td>
+      <td>₹{{ a.estimated_cost|floatformat:0|intcomma }}</td>
+      <td><span class="badge {% if a.status == 'completed' %}bg-success{% elif a.status == 'cancelled' %}bg-danger{% else %}bg-warning{% endif %}">{{ a.get_status_display }}</span></td>
+      <td class="pe-4 text-end">{% if a.status == "booked" and a.date >= today %}
+        <form method="post" action="{% url 'service:cancel' a.pk %}" onsubmit="return confirm('Cancel this appointment?')">{% csrf_token %}<button class="btn btn-sm btn-outline-danger">Cancel</button></form>
+      {% endif %}</td>
+    </tr>
+    {% empty %}<tr><td colspan="6"><div class="empty"><i class="bi bi-calendar"></i>No appointments yet.</div></td></tr>{% endfor %}
+    </tbody>
+  </table>
+  </div>
+</div>
+{% endblock %}

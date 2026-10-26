@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}Log in{% endblock %}
+{% block content %}
+<div class="auth-wrap" data-reveal="zoom">
+  <div class="auth-visual">
+    <div>
+      <span class="eyebrow">Welcome back</span>
+      <h2 class="mt-2" style="font-size:clamp(2.2rem,4vw,3.4rem);line-height:.95">Start your<br><span class="text-grad">engine.</span></h2>
+      <p class="muted" style="max-width:340px">Your garage, service forecasts and orders are one turn of the key away.</p>
+    </div>
+    <div class="mini-car">{% include "_car_svg.html" with paint="#262c35" spin=True beam=True stripe=True %}</div>
+    <div class="road"></div>
+  </div>
+  <div class="auth-form">
+    <h3 class="mb-4">Log in</h3>
+    <form method="post">{% csrf_token %}
+      {% if form.errors %}<div class="alert small" style="border-left:3px solid var(--cc-bad)">Invalid username or password.</div>{% endif %}
+      <div class="mb-3"><label class="form-label">Username</label><div class="input-icon"><i class="bi bi-person"></i><input name="username" class="form-control" required autofocus></div></div>
+      <div class="mb-4"><label class="form-label">Password</label><div class="input-icon"><i class="bi bi-lock"></i><input type="password" name="password" class="form-control" required></div></div>
+      <input type="hidden" name="next" value="{{ next }}">
+      <button class="btn btn-accent btn-lg w-100">Log in <i class="bi bi-arrow-right ms-1"></i></button>
+    </form>
+    <p class="mt-4 mb-0 small muted">New here? <a href="{% url 'signup' %}">Create an account</a></p>
+    <div class="panel mt-4 py-3 small"><i class="bi bi-info-circle me-1" style="color:var(--cc-accent-2)"></i> Demo: <code>customer</code> / <code>manager</code> / <code>priya</code>, password <code>demo1234</code></div>
+  </div>
+</div>
+{% endblock %}

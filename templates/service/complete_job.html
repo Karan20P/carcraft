@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %}Complete job{% endblock %}
+{% block content %}
+<div class="row justify-content-center"><div class="col-lg-6">
+  <a href="{% url 'service:board' %}" class="small text-decoration-none muted"><i class="bi bi-arrow-left"></i> Service board</a>
+  <div class="page-head mt-2" data-reveal><span class="eyebrow">{{ appt.car }}</span><h1>Complete: {{ appt.service_type }}</h1>
+    <p class="muted mb-0">{{ appt.date|date:"d M Y" }} · {{ appt.slot }}</p></div>
+  <div class="panel" data-reveal="zoom">
+    <div class="alert alert-info small"><i class="bi bi-cpu me-1"></i> The odometer reading recorded here feeds the predictive engine, so this car's next reminder is based on how it's actually driven.</div>
+    <form method="post">{% csrf_token %}{% include "_form.html" %}<button class="btn btn-success btn-lg w-100"><i class="bi bi-check2-circle me-1"></i>Mark completed</button></form>
+  </div>
+</div></div>
+{% endblock %}

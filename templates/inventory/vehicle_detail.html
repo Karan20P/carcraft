@@ -1,0 +1,81 @@
+{% extends "base.html" %}{% load humanize carcraft %}
+{% block title %}{{ vehicle }}{% endblock %}
+{% block content %}
+<a href="{% url 'inventory:list' %}" class="small text-decoration-none muted"><i class="bi bi-arrow-left"></i> Back to showroom</a>
+
+<div class="row g-4 mt-1">
+  <div class="col-lg-8">
+    <div class="showroom{% if vehicle.display_image %} has-photo{% endif %}" data-reveal="zoom">
+      {% if vehicle.display_image %}<img src="{{ vehicle.display_image.url }}" alt="{{ vehicle.car_model }}">
+      {% else %}{% include "_car_svg.html" with paint=vehicle.color|paint beam=True stripe=False %}{% endif %}
+    </div>
+    {% if not vehicle.image and vehicle.car_model.image_credit %}<div class="photo-credit">Representative model photo. {% if vehicle.car_model.image_source %}<a href="{{ vehicle.car_model.image_source }}" target="_blank" rel="noopener">{{ vehicle.car_model.image_credit }}</a>{% else %}{{ vehicle.car_model.image_credit }}{% endif %}</div>{% endif %}
+
+    <div class="mt-4" data-reveal>
+      <span class="eyebrow">{{ vehicle.car_model.make }}</span>
+      <h1 class="mt-2" style="font-size:clamp(2.2rem,5vw,3.6rem)">{{ vehicle.car_model.name }} <span class="muted">{{ vehicle.variant }}</span></h1>
+    </div>
+
+    <div class="spec-grid my-4" data-stagger=".06">
+      <div class="spec"><i class="bi bi-calendar3"></i><div class="k">Year</div><div class="v">{{ vehicle.year }}</div></div>
+      <div class="spec"><i class="bi bi-fuel-pump"></i><div class="k">Fuel</div><div class="v">{{ vehicle.get_fuel_display }}</div></div>
+      <div class="spec"><i class="bi bi-gear-wide-connected"></i><div class="k">Transmission</div><div class="v">{{ vehicle.get_transmission_display }}</div></div>
+      <div class="spec"><i class="bi bi-speedometer2"></i><div class="k">Odometer</div><div class="v">{{ vehicle.odometer_km|intcomma }} km</div></div>
+      <div class="spec"><i class="bi bi-car-front"></i><div class="k">Body</div><div class="v">{{ vehicle.car_model.get_body_type_display }}</div></div>
+      <div class="spec"><i class="bi bi-palette"></i><div class="k">Colour</div><div class="v"><span class="rounded-circle d-inline-block me-1" style="width:10px;height:10px;background:{{ vehicle.color|paint }}"></span>{{ vehicle.color }}</div></div>
+    </div>
+
+    <div class="panel" data-reveal>
+      <h5 class="mb-2">About this car</h5>
+      <p class="muted mb-3">{{ vehicle.description|default:"A well-maintained vehicle, inspected by our workshop." }}</p>
+      <div class="small muted">VIN <code>{{ vehicle.vin }}</code></div>
+    </div>
+  </div>
+
+  <div class="col-lg-4">
+    <div class="sticky-panel">
+      <div class="panel" data-reveal="right">
+        <div class="d-flex gap-2 mb-3">
+          <span class="badge {% if vehicle.is_new %}bg-success{% else %}bg-secondary{% endif %}">{% if vehicle.is_new %}New{% else %}Pre-owned{% endif %}</span>
+          <span class="badge bg-secondary"><span class="status-dot" style="color:var(--cc-ok)"></span>{{ vehicle.get_status_display }}</span>
+        </div>
+        <div class="small muted">Price</div>
+        <div class="big-price text-grad">₹{{ vehicle.list_price|floatformat:0|intcomma }}</div>
+        {% if vehicle.price_changes.exists %}
+        <div class="mt-1"><span class="strike">₹{{ vehicle.original_price|floatformat:0|intcomma }}</span> <span class="price-drop"><i class="bi bi-arrow-down-circle"></i> Price reduced</span></div>
+        {% endif %}
+        <hr class="my-4">
+        {% if vehicle.status == "in_stock" %}
+          <h5 class="mb-3"><i class="bi bi-key me-1 text-grad"></i> Book a test drive</h5>
+          {% if user.is_authenticated %}
+          <form method="post" action="{% url 'inventory:test_drive' vehicle.pk %}">{% csrf_token %}{% include "_form.html" %}
+            <button class="btn btn-accent w-100">Request test drive</button></form>
+          {% else %}<a href="{% url 'login' %}?next={{ request.path }}" class="btn btn-accent w-100">Log in to book a test drive</a>{% endif %}
+        {% else %}<p class="muted mb-0">This car is currently {{ vehicle.get_status_display|lower }}.</p>{% endif %}
+      </div>
+
+      {% if user.is_authenticated and user.is_dealer_staff %}
+      {% with a=vehicle.advice %}
+      <div class="panel mt-3" data-reveal="right" style="--d:.15s">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h6 class="mb-0"><i class="bi bi-shield-lock me-1"></i> Aging advisor</h6>
+          <span class="badge bg-{{ a.color }}">{{ a.stage_label }}</span>
+        </div>
+        <div class="fuelbar" data-w="{{ vehicle.days_on_lot|pct_of:150 }}" style="--w:{{ vehicle.days_on_lot|pct_of:150 }}%">
+          <span class="mark" style="left:30%"></span><span class="mark" style="left:60%"></span><span class="mark" style="left:80%"></span><span class="rest"></span>
+        </div>
+        <div class="fuel-legend"><span>0</span><span>45</span><span>90</span><span>120</span><span>150+ days</span></div>
+        <div class="row small mt-3 g-2">
+          <div class="col-6 muted">Days on lot</div><div class="col-6 text-end fw-semibold">{{ vehicle.days_on_lot }}</div>
+          <div class="col-6 muted">Cost</div><div class="col-6 text-end">₹{{ vehicle.cost_price|floatformat:0|intcomma }}</div>
+          <div class="col-6 muted">Holding cost</div><div class="col-6 text-end">₹{{ a.holding_cost|floatformat:0|intcomma }}</div>
+          {% if a.needs_action %}<div class="col-6 muted">Suggested</div><div class="col-6 text-end fw-bold text-grad">₹{{ a.suggested_price|floatformat:0|intcomma }}</div>{% endif %}
+        </div>
+        {% if a.needs_action %}<a href="{% url 'dashboard:aging' %}" class="btn btn-ghost btn-sm w-100 mt-3">Review in advisor</a>{% endif %}
+      </div>
+      {% endwith %}
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

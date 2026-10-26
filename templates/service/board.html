@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}Service board{% endblock %}
+{% block content %}
+<div class="page-head" data-reveal><span class="eyebrow">Workshop floor</span><h1>Service board</h1>
+  <p class="muted mb-0">Upcoming jobs. Today's are highlighted.</p></div>
+<div class="card" data-reveal>
+  <div class="table-responsive">
+  <table class="table align-middle">
+    <thead><tr><th class="ps-4">When</th><th>Customer</th><th>Car</th><th>Job</th><th>Parts bundle</th><th class="pe-4"></th></tr></thead>
+    <tbody>
+    {% for a in appointments %}
+    <tr {% if a.date == today %}class="row-today"{% endif %}>
+      <td class="ps-4"><div class="fw-semibold">{{ a.date|date:"D d M" }}</div><div class="small muted">{{ a.slot }}</div></td>
+      <td>{{ a.customer }}<div class="small muted">{{ a.customer.phone }}</div></td>
+      <td>{{ a.car.car_model }}<div class="small muted"><code>{{ a.car.registration_no }}</code></div></td>
+      <td>{{ a.service_type }}{% if a.notes %}<div class="small muted">{{ a.notes }}</div>{% endif %}</td>
+      <td>{% if a.include_bundle %}{% for p in a.service_type.bundle_parts.all %}<span class="chip me-1 mb-1">{{ p.name }}</span>{% empty %}<span class="muted">-</span>{% endfor %}{% else %}<span class="muted">-</span>{% endif %}</td>
+      <td class="pe-4 text-end"><a href="{% url 'service:complete' a.pk %}" class="btn btn-sm btn-success"><i class="bi bi-check2-circle me-1"></i>Complete</a></td>
+    </tr>
+    {% empty %}<tr><td colspan="6"><div class="empty"><i class="bi bi-tools"></i>No upcoming jobs.</div></td></tr>{% endfor %}
+    </tbody>
+  </table>
+  </div>
+</div>
+{% endblock %}

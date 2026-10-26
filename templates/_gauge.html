@@ -1,0 +1,20 @@
+{% comment %}Speedometer gauge. Params: p (0-100 fill), value (display text), label, color (optional){% endcomment %}
+<div class="gauge" data-p="{{ p }}" style="--p:{{ p }}">
+  <svg viewBox="0 0 200 118">
+    <defs>
+      <linearGradient id="g-grad" x1="0" x2="1"><stop offset="0" stop-color="#22d07a"/><stop offset=".55" stop-color="#ffb21a"/><stop offset="1" stop-color="#ff3d2e"/></linearGradient>
+    </defs>
+    <path class="track" d="M20,100 A80,80 0 0 1 180,100" fill="none" stroke-width="12" stroke-linecap="round"/>
+    <path class="val" d="M20,100 A80,80 0 0 1 180,100" fill="none" stroke="{{ color|default:'url(#g-grad)' }}" stroke-width="12" stroke-linecap="round" pathLength="100"/>
+    <g class="tick" stroke-width="2">
+      <line x1="100" y1="8" x2="100" y2="16"/><line x1="35" y1="35" x2="41" y2="41"/><line x1="165" y1="35" x2="159" y2="41"/>
+      <line x1="8" y1="100" x2="16" y2="100"/><line x1="192" y1="100" x2="184" y2="100"/>
+    </g>
+    <g class="needle">
+      <line x1="100" y1="100" x2="100" y2="34" stroke="#fff" stroke-width="3" stroke-linecap="round"/>
+      <circle cx="100" cy="100" r="8" fill="#13171c" stroke="#ff6b1a" stroke-width="3"/>
+    </g>
+  </svg>
+  <div class="g-val">{{ value }}</div>
+  <div class="g-lbl">{{ label }}</div>
+</div>

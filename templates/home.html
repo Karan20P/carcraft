@@ -1,0 +1,106 @@
+{% extends "base.html" %}{% load humanize %}
+{% block title %}Home{% endblock %}
+{% block hero %}
+<section class="hero">
+  <div class="speed-lines"></div>
+  <div class="container hero-content">
+    <div class="row"><div class="col-lg-6">
+      <span class="eyebrow" data-reveal>Dealership · Parts · Service</span>
+      <h1>
+        <span class="line"><span style="--d:.15s">Buy it.</span></span>
+        <span class="line"><span style="--d:.3s">Fit it.</span></span>
+        <span class="line"><span class="text-grad" style="--d:.45s">Drive it.</span></span>
+      </h1>
+      <p class="lead" data-reveal style="--d:.55s">New and pre-owned cars, genuine parts, and a workshop that learns how you drive, so it reminds you <em>before</em> your car needs servicing.</p>
+      <div class="d-flex gap-3 flex-wrap mt-4" data-reveal style="--d:.7s">
+        <a href="{% url 'inventory:list' %}" class="btn btn-accent btn-lg">Explore showroom <i class="bi bi-arrow-right ms-1"></i></a>
+        <a href="{% url 'service:book' %}" class="btn btn-ghost btn-lg"><i class="bi bi-wrench-adjustable me-1"></i> Book a service</a>
+      </div>
+      <div class="hero-stats" data-reveal style="--d:.85s">
+        <div><div class="num" data-count="{{ stats.in_stock }}">{{ stats.in_stock }}</div><div class="lbl">Cars in stock</div></div>
+        <div><div class="num" data-count="{{ stats.makes }}">{{ stats.makes }}</div><div class="lbl">Brands</div></div>
+        <div><div class="num" data-count="{{ stats.parts }}">{{ stats.parts }}</div><div class="lbl">Parts</div></div>
+        <div><div class="num" data-count="{{ stats.serviced }}" data-suffix="+">{{ stats.serviced }}+</div><div class="lbl">Jobs done</div></div>
+      </div>
+    </div></div>
+  </div>
+  <div class="hero-car">{% include "_car_svg.html" with paint="#262c35" spin=True beam=True stripe=True %}</div>
+  <div class="road"></div>
+  <a href="#features" class="scroll-cue" aria-label="Scroll"><i class="bi bi-chevron-double-down"></i></a>
+</section>
+{% endblock %}
+
+{% block content %}
+<section id="features" class="pt-4">
+  <div class="row g-4" data-stagger=".12">
+    <div class="col-md-4"><div class="card feature lift h-100">
+      <div class="ico"><i class="bi bi-graph-up-arrow"></i></div>
+      <h4>Predictive service</h4>
+      <p class="muted mb-0">We learn your km/day from real odometer history and forecast each service, then offer a free bay slot and the exact parts bundle.</p>
+    </div></div>
+    <div class="col-md-4"><div class="card feature lift h-100">
+      <div class="ico"><i class="bi bi-tags"></i></div>
+      <h4>Fresh-stock pricing</h4>
+      <p class="muted mb-0">Cars that sit on the lot get smart markdowns from our aging advisor, so you get the saving, not the holding cost.</p>
+    </div></div>
+    <div class="col-md-4"><div class="card feature lift h-100">
+      <div class="ico"><i class="bi bi-box-seam"></i></div>
+      <h4>Parts at your door</h4>
+      <p class="muted mb-0">Genuine filters, brakes, batteries and accessories, with live stock and fast checkout.</p>
+    </div></div>
+  </div>
+</section>
+
+<div class="divider-tread"></div>
+
+<section>
+  <div class="d-flex justify-content-between align-items-end mb-4 flex-wrap gap-2" data-reveal>
+    <div><span class="eyebrow">Fresh on the floor</span><h2 class="mt-2 mb-0" style="font-size:2.6rem">Latest arrivals</h2></div>
+    <a href="{% url 'inventory:list' %}" class="btn btn-ghost">View showroom <i class="bi bi-arrow-right"></i></a>
+  </div>
+  <div class="row g-4" data-stagger=".1">
+    {% for v in vehicles %}<div class="col-md-6 col-lg-4">{% include "_vehicle_card.html" %}</div>
+    {% empty %}<div class="empty"><i class="bi bi-car-front"></i>No cars in stock yet. Run <code>python manage.py seed_demo</code>.</div>{% endfor %}
+  </div>
+</section>
+
+<div class="divider-tread"></div>
+
+<section class="text-center">
+  <div data-reveal><span class="eyebrow">How predictive service works</span><h2 class="mt-2 mb-5" style="font-size:2.6rem">Your car, your rhythm</h2></div>
+  <div class="row g-4 steps" data-stagger=".15">
+    <div class="col-md-4"><div class="step-num">1</div><h5>Log your odometer</h5><p class="muted small px-lg-4">Readings come from you and from every service. Each one sharpens the model.</p></div>
+    <div class="col-md-4"><div class="step-num">2</div><h5>We learn your km/day</h5><p class="muted small px-lg-4">A regression line through your history gives your real driving rate, not a generic average.</p></div>
+    <div class="col-md-4"><div class="step-num">3</div><h5>Book in one tap</h5><p class="muted small px-lg-4">Get reminded by distance or time, whichever comes first, with a free slot and parts ready.</p></div>
+  </div>
+</section>
+
+{% if parts %}
+<div class="divider-tread"></div>
+<section>
+  <div class="d-flex justify-content-between align-items-end mb-4 flex-wrap gap-2" data-reveal>
+    <div><span class="eyebrow">Genuine parts</span><h2 class="mt-2 mb-0" style="font-size:2.6rem">Popular picks</h2></div>
+    <a href="{% url 'shop:list' %}" class="btn btn-ghost">Shop all <i class="bi bi-arrow-right"></i></a>
+  </div>
+  <div class="row g-4" data-stagger=".08">
+    {% for p in parts %}
+    <div class="col-6 col-lg-3"><div class="card part-card lift">
+      <div class="p-ico mb-3"><i class="bi {{ p.category.icon }}"></i></div>
+      <div class="small muted">{{ p.category }}</div>
+      <h6 class="mt-1">{{ p.name }}</h6>
+      <div class="price mt-auto">₹{{ p.price|floatformat:0|intcomma }}</div>
+    </div></div>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
+
+<section class="mt-5 pt-4">
+  <div class="cta-band text-center" data-reveal="zoom">
+    <span class="eyebrow">Already own a car?</span>
+    <h2 class="mt-2" style="font-size:clamp(2rem,4vw,3rem)">Add it to your garage. We'll take it from there.</h2>
+    <p class="muted mx-auto" style="max-width:540px">Free predictive maintenance forecasts for any make, whether or not you bought it here.</p>
+    <a href="{% if user.is_authenticated %}{% url 'service:add_car' %}{% else %}{% url 'signup' %}{% endif %}" class="btn btn-accent btn-lg mt-2">Add my car <i class="bi bi-plus-lg ms-1"></i></a>
+  </div>
+</section>
+{% endblock %}

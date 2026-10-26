@@ -1,0 +1,25 @@
+{% extends "base.html" %}{% load humanize %}
+{% block title %}Checkout{% endblock %}
+{% block content %}
+<div class="page-head" data-reveal><span class="eyebrow">Almost there</span><h1>Checkout</h1></div>
+<div class="row g-4">
+  <div class="col-lg-7">
+    <div class="panel" data-reveal>
+      <h5 class="mb-3"><i class="bi bi-truck me-2 text-grad"></i>Delivery details</h5>
+      <form method="post">{% csrf_token %}{% include "_form.html" %}
+        <div class="alert alert-info small"><i class="bi bi-info-circle me-1"></i> Demo checkout: payment is cash on delivery.</div>
+        <button class="btn btn-accent btn-lg w-100">Place order · ₹{{ total|floatformat:0|intcomma }}</button>
+      </form>
+    </div>
+  </div>
+  <div class="col-lg-5">
+    <div class="panel" data-reveal="right">
+      <h5 class="mb-3">Order summary</h5>
+      {% for i in items %}
+      <div class="d-flex justify-content-between py-2 border-bottom small"><span>{{ i.part.name }} <span class="muted">× {{ i.quantity }}</span></span><span>₹{{ i.line_total|floatformat:0|intcomma }}</span></div>
+      {% endfor %}
+      <div class="d-flex justify-content-between align-items-end pt-3"><span>Total</span><span class="big-price text-grad" style="font-size:2rem">₹{{ total|floatformat:0|intcomma }}</span></div>
+    </div>
+  </div>
+</div>
+{% endblock %}

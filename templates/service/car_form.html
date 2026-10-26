@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block title %}Add a car{% endblock %}
+{% block content %}
+<div class="row justify-content-center"><div class="col-lg-7">
+  <div class="page-head text-center" data-reveal><span class="eyebrow">My Garage</span><h1>Add a car</h1>
+    <p class="muted mx-auto" style="max-width:520px">Your odometer readings teach CarCraft how much you drive, so reminders arrive when <em>your</em> car needs them, not on a generic calendar.</p></div>
+  <div class="panel" data-reveal="zoom">
+    <form method="post">{% csrf_token %}{% include "_form.html" %}<button class="btn btn-accent btn-lg w-100">Add to garage</button></form>
+  </div>
+</div></div>
+{% endblock %}

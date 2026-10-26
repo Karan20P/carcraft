@@ -1,0 +1,82 @@
+{% extends "base.html" %}{% load humanize carcraft %}
+{% block title %}{{ car }}{% endblock %}
+{% block content %}
+<a href="{% url 'service:my_cars' %}" class="small text-decoration-none muted"><i class="bi bi-arrow-left"></i> My Garage</a>
+<div class="page-head mt-2" data-reveal>
+  <span class="eyebrow">{{ car.car_model.make }} · {{ car.year }} · {{ car.registration_no }}</span>
+  <h1>{{ car.car_model.name }}: service forecast</h1>
+</div>
+
+<div class="panel mb-4" data-reveal>
+  <div class="row g-4 align-items-center text-center">
+    <div class="col-6 col-lg-3">{% include "_gauge.html" with p=usage.km_per_day|pct_of:150 value=usage.km_per_day label="km / day" %}</div>
+    <div class="col-6 col-lg-3">
+      <div class="g-val display-font" style="font-size:2.6rem" data-count="{{ usage.current_km }}" data-suffix=" km">{{ usage.current_km|intcomma }} km</div>
+      <div class="g-lbl muted small text-uppercase" style="letter-spacing:.14em">Odometer today (est.)</div>
+    </div>
+    <div class="col-6 col-lg-3">
+      <div class="display-font" style="font-size:2.6rem" data-count="{{ usage.km_per_month }}">{{ usage.km_per_month|intcomma }}</div>
+      <div class="muted small text-uppercase" style="letter-spacing:.14em">km per month</div>
+    </div>
+    <div class="col-6 col-lg-3">
+      {% if usage.confidence == "high" %}{% include "_gauge.html" with p=90 value="High" label="Model confidence" color="#22d07a" %}
+      {% elif usage.confidence == "medium" %}{% include "_gauge.html" with p=60 value="Medium" label="Model confidence" color="#ffb21a" %}
+      {% else %}{% include "_gauge.html" with p=25 value="Low" label="Model confidence" color="#ff4d4f" %}{% endif %}
+      <div class="small muted">{{ usage.points }} reading{{ usage.points|pluralize }}</div>
+    </div>
+  </div>
+</div>
+{% if usage.is_default %}<div class="alert alert-info small mb-4" data-reveal><i class="bi bi-lightbulb me-1"></i> Not enough history yet, so we're assuming an average {{ usage.km_per_day }} km/day. Log your odometer every few weeks and predictions get sharper.</div>{% endif %}
+
+<div class="row g-4">
+  <div class="col-lg-7">
+    <h4 class="mb-3" data-reveal>Predicted maintenance</h4>
+    <div data-stagger=".1">
+    {% for p in predictions %}{% include "service/_prediction.html" with show_book=True %}
+    {% empty %}<div class="empty panel"><i class="bi bi-check2-circle"></i>Everything is booked or up to date.</div>{% endfor %}
+    </div>
+  </div>
+  <div class="col-lg-5">
+    <div class="panel mb-4" data-reveal="right">
+      <h5 class="mb-3">Odometer trend</h5>
+      <canvas id="odoChart" height="210"></canvas>
+      <form method="post" class="mt-4">{% csrf_token %}
+        <label class="form-label">{{ odo_form.km.label }}</label>
+        <div class="d-flex gap-2">{{ odo_form.km }}<button class="btn btn-accent text-nowrap"><i class="bi bi-plus-lg"></i> Log</button></div>
+        {% for e in odo_form.km.errors %}<div class="small mt-1" style="color:var(--cc-bad)">{{ e }}</div>{% endfor %}
+      </form>
+    </div>
+    <div class="panel" data-reveal="right" style="--d:.1s">
+      <h5 class="mb-3">Service history</h5>
+      {% for a in history %}
+      <div class="d-flex gap-3 py-2 {% if not forloop.last %}border-bottom{% endif %}">
+        <div class="text-center" style="min-width:48px"><div class="display-font fs-4 lh-1">{{ a.date|date:"d" }}</div><div class="small muted">{{ a.date|date:"M y" }}</div></div>
+        <div class="flex-grow-1 small"><div class="fw-semibold">{{ a.service_type }}</div>{% if a.odometer_km %}<div class="muted">{{ a.odometer_km|intcomma }} km</div>{% endif %}</div>
+        <span class="badge {% if a.status == 'completed' %}bg-success{% elif a.status == 'cancelled' %}bg-danger{% else %}bg-warning{% endif %} align-self-start">{{ a.get_status_display }}</span>
+      </div>
+      {% empty %}<p class="muted small mb-0">No services yet.</p>{% endfor %}
+    </div>
+  </div>
+</div>
+{{ chart_labels|json_script:"odo-labels" }}
+{{ chart_values|json_script:"odo-values" }}
+{% endblock %}
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script>
+ccChartDefaults();
+const ctx = document.getElementById('odoChart');
+const grad = ctx.getContext('2d').createLinearGradient(0, 0, 0, 220);
+grad.addColorStop(0, 'rgba(255,107,26,.35)'); grad.addColorStop(1, 'rgba(255,107,26,0)');
+new Chart(ctx, {
+  type: 'line',
+  data: {
+    labels: JSON.parse(document.getElementById('odo-labels').textContent),
+    datasets: [{ label: 'Odometer (km)', data: JSON.parse(document.getElementById('odo-values').textContent),
+      borderColor: '#ff8a2a', backgroundColor: grad, fill: true, tension: .3, pointRadius: 3, pointBackgroundColor: '#ffb21a', borderWidth: 2.5 }]
+  },
+  options: { animation: { duration: 1600, easing: 'easeOutQuart' }, plugins: { legend: { display: false } },
+    scales: { x: { grid: { display: false } }, y: { ticks: { callback: v => v.toLocaleString('en-IN') + ' km' } } } }
+});
+</script>
+{% endblock %}

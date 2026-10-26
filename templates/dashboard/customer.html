@@ -1,0 +1,70 @@
+{% extends "base.html" %}{% load humanize %}
+{% block title %}My dashboard{% endblock %}
+{% block content %}
+<div class="page-head" data-reveal><span class="eyebrow">Dashboard</span><h1>Welcome back, <span class="text-grad">{{ user.first_name|default:user.username }}</span></h1></div>
+
+<div class="row g-4">
+  <div class="col-lg-8">
+    <div class="d-flex justify-content-between align-items-center mb-3" data-reveal>
+      <h4 class="mb-0">My cars</h4><a href="{% url 'service:add_car' %}" class="btn btn-sm btn-ghost"><i class="bi bi-plus-lg"></i> Add car</a>
+    </div>
+    <div class="d-grid gap-3 mb-5" data-stagger=".08">
+    {% for item in cars %}
+      <a href="{% url 'service:car_detail' item.car.pk %}" class="panel lift text-decoration-none text-reset d-block">
+        <div class="row align-items-center g-3">
+          <div class="col-md-3 d-none d-md-block">
+            {% if item.car.car_model.image %}<img src="{{ item.car.car_model.image.url }}" alt="{{ item.car.car_model }}" class="garage-thumb" loading="lazy">
+            {% else %}{% include "_car_svg.html" with paint="#3a414c" %}{% endif %}
+          </div>
+          <div class="col-md-5">
+            <div class="display-font fs-4 lh-1">{{ item.car.car_model }}</div>
+            <div class="small muted mt-1"><code>{{ item.car.registration_no }}</code> · ~{{ item.usage.current_km|intcomma }} km · {{ item.usage.km_per_month|intcomma }} km/mo</div>
+          </div>
+          <div class="col-md-4">
+            {% if item.next %}
+            <div class="d-flex justify-content-between small mb-1"><span>{{ item.next.service_type }}</span><span class="badge bg-{{ item.next.color }}">{{ item.next.status_label }}</span></div>
+            <div class="fuelbar" data-w="{% if item.next.life_used > 100 %}100{% else %}{{ item.next.life_used }}{% endif %}" style="--w:{% if item.next.life_used > 100 %}100{% else %}{{ item.next.life_used }}{% endif %}%"><span class="rest"></span></div>
+            <div class="small muted mt-1">Due {{ item.next.due_date|date:"d M Y" }}</div>
+            {% endif %}
+          </div>
+        </div>
+      </a>
+    {% empty %}
+      <div class="empty panel"><i class="bi bi-car-front"></i>Add your car to get personalised service predictions.<div class="mt-3"><a href="{% url 'service:add_car' %}" class="btn btn-accent">Add a car</a></div></div>
+    {% endfor %}
+    </div>
+
+    <div class="row g-4">
+      <div class="col-md-6" data-reveal>
+        <h5 class="mb-3"><i class="bi bi-wrench-adjustable me-1 text-grad"></i> Upcoming services</h5>
+        <div class="panel py-2">
+          {% for a in appointments %}<div class="py-2 {% if not forloop.last %}border-bottom{% endif %} small"><b>{{ a.date|date:"D d M" }}</b> {{ a.slot }}<div class="muted">{{ a.service_type }} · {{ a.car.car_model }}</div></div>
+          {% empty %}<div class="py-3 small muted">None booked. <a href="{% url 'service:book' %}">Book a service</a></div>{% endfor %}
+        </div>
+      </div>
+      <div class="col-md-6" data-reveal style="--d:.1s">
+        <h5 class="mb-3"><i class="bi bi-key me-1 text-grad"></i> Test drives</h5>
+        <div class="panel py-2">
+          {% for t in test_drives %}<div class="py-2 {% if not forloop.last %}border-bottom{% endif %} small d-flex justify-content-between gap-2"><div><b>{{ t.date|date:"D d M" }}</b> {{ t.time|time:"H:i" }}<div class="muted">{{ t.vehicle }}</div></div><span class="badge bg-secondary align-self-start">{{ t.get_status_display }}</span></div>
+          {% empty %}<div class="py-3 small muted">No test drives. <a href="{% url 'inventory:list' %}">Browse cars</a></div>{% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-4">
+    <div data-reveal="right">
+      <h5 class="mb-3"><i class="bi bi-bell me-1 text-grad"></i> Notifications</h5>
+      <div class="d-grid gap-2 mb-4">
+        {% for n in notifications %}<a href="{{ n.link|default:'#' }}" class="panel py-3 small text-decoration-none text-reset lift {% if not n.is_read %}unread{% endif %}">{{ n.message }}</a>
+        {% empty %}<div class="panel small muted">You're all caught up.</div>{% endfor %}
+      </div>
+      <h5 class="mb-3"><i class="bi bi-box-seam me-1 text-grad"></i> Recent orders</h5>
+      <div class="panel py-2">
+        {% for o in orders %}<div class="py-2 {% if not forloop.last %}border-bottom{% endif %} small d-flex justify-content-between"><span>#{{ o.pk }} · {{ o.created_at|date:"d M" }}</span><span>₹{{ o.total|floatformat:0|intcomma }} <span class="badge bg-secondary ms-1">{{ o.get_status_display }}</span></span></div>
+        {% empty %}<div class="py-3 small muted">No orders yet.</div>{% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
