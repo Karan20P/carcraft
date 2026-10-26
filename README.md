@@ -76,11 +76,22 @@ each vehicle page. Every vehicle of that model uses the photo unless it has its 
 Models without a photo fall back to the painted car silhouette. The source for each model is listed in
 `inventory/images.py`.
 
+## Deploy (Render, free)
+The repo includes a `render.yaml` blueprint and `build.sh`.
+1. Sign in at https://render.com with GitHub.
+2. **New → Blueprint**, pick this repo, then **Apply**.
+
+Each deploy installs dependencies, collects static files and builds a fresh demo database, so the live site
+always starts with the demo data. On the free plan the filesystem resets when the service restarts or sleeps,
+which also resets the demo. The service sleeps after 15 min idle (the first request then takes about 50 s).
+A free uptime monitor (e.g. UptimeRobot) pinging the URL every 5 minutes keeps it awake.
+
 ## Switch to MySQL
 ```sql
 CREATE DATABASE carcraft CHARACTER SET utf8mb4;
 ```
 ```powershell
+pip install -r requirements-mysql.txt
 $env:DB_ENGINE="mysql"; $env:DB_NAME="carcraft"; $env:DB_USER="root"; $env:DB_PASSWORD="yourpassword"
 python manage.py migrate
 python manage.py seed_demo

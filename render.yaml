@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: carcraft
+    runtime: python
+    plan: free
+    buildCommand: ./build.sh
+    startCommand: gunicorn carcraft.wsgi:application
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.13.1"
+      - key: DJANGO_DEBUG
+        value: "0"
+      - key: DJANGO_SECRET_KEY
+        generateValue: true
